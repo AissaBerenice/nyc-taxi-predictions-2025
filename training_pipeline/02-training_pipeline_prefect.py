@@ -7,6 +7,7 @@ import mlflow
 import pathlib
 import pandas as pd
 import xgboost as xgb
+from pathlib import Path
 from dotenv import load_dotenv
 from optuna.samplers import TPESampler
 from mlflow.models.signature import infer_signature
@@ -216,8 +217,9 @@ def train_best_model(X_train, X_val, y_train, y_val, dv, best_params) -> None:
 
 @task(name="Register model")
 def register_model():
+
     runs = mlflow.search_runs(
-    experiment_names=["/Users/aclarapao@gmail.com/nyc-taxi-experiment-prefect"],
+    experiment_names=["/Users/aissafosado@gmail.com/nyc-taxi-experiment-prefect"],
     order_by=["metrics.rmse ASC"],
     output_format="list"
     )
@@ -252,12 +254,15 @@ def register_model():
 def main_flow(year: int, month_train: str, month_val: str) -> None:
     """The main training pipeline"""
     
-    train_path = f"../data/green_tripdata_{year}-{month_train}.parquet"
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]
+    DATA_DIR = PROJECT_ROOT / "data"
+
+    train_path = DATA_DIR / f"green_tripdata_{year}-{month_train}.parquet"
     
-    val_path = f"../data/green_tripdata_{year}-{month_val}.parquet"
+    val_path = DATA_DIR / f"green_tripdata_{year}-{month_val}.parquet"
     
     load_dotenv(override=True)  # Carga las variables del archivo .env
-    EXPERIMENT_NAME = "/Users/aclarapao@gmail.com/nyc-taxi-experiment-prefect"
+    EXPERIMENT_NAME = "/Users/aissafosado@gmail.com/nyc-taxi-experiment-prefect"
 
     mlflow.set_tracking_uri("databricks")
     experiment = mlflow.set_experiment(experiment_name=EXPERIMENT_NAME)

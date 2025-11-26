@@ -16,6 +16,7 @@ from prefect import flow, task
 from mlflow import MlflowClient
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
+from pathlib import Path
 
 
 @task(name="Read Data")
@@ -111,7 +112,11 @@ def compare_and_promote(challenger_id: str, df_train: pd.DataFrame):
     chall_model = mlflow.pyfunc.load_model(f"runs:/{challenger_id}/model")
 
     # revalúa sobre nuevo dataset
-    df_reval = read_data("../data/green_tripdata_2025-03.parquet")
+
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]
+    DATA_DIR = PROJECT_ROOT / "data"
+
+    df_reval = read_data(DATA_DIR / "../data/green_tripdata_2025-03.parquet")
     X_train, X_reval, y_train, y_reval, dv = add_features(df_train, df_reval)
 
     y_chall = chall_model.predict(X_reval)
@@ -137,14 +142,18 @@ def compare_and_promote(challenger_id: str, df_train: pd.DataFrame):
 
 @flow(name="nyc-taxi-experiment-prefect-v2")
 def main_flow_v2(year: int = 2025, month_train: str = "01", month_val: str = "02"):
+
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]
+    DATA_DIR = PROJECT_ROOT / "data"
+
     load_dotenv(override=True)
     mlflow.set_tracking_uri("databricks")
 
-    EXPERIMENT_NAME = "/Users/aclarapao@gmail.com/nyc-taxi-experiment-prefect"
+    EXPERIMENT_NAME = "/Users/aissafosado@gmail.com/nyc-taxi-experiment-prefect"
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    train_path = f"../data/green_tripdata_{year}-{month_train}.parquet"
-    val_path = f"../data/green_tripdata_{year}-{month_val}.parquet"
+    train_path = DATA_DIR / f"green_tripdata_{year}-{month_train}.parquet"
+    val_path = DATA_DIR / f"green_tripdata_{year}-{month_val}.parquet"
 
     df_train = read_data(train_path)
     df_val = read_data(val_path)
@@ -157,3 +166,23 @@ def main_flow_v2(year: int = 2025, month_train: str = "01", month_val: str = "02
 
 if __name__ == "__main__":
     main_flow_v2()
+    
+    
+    # load_dotenv(override=True)  # Carga las variables del archivo .env
+    # EXPERIMENT_NAME = "/Users/aissafosado@gmail.com/nyc-taxi-experiment-prefect"
+
+    # mlflow.set_tracking_uri("databricks")
+    # experiment = mlflow.set_experiment(experiment_name=EXPERIMENT_NAME)
+
+    # # Load
+    # df_train = read_data(train_path)
+    # df_val = read_data(val_path)
+
+    # # Transform
+    # X_train, X_val, y_train, y_val, dv = add_features(df_train, df_val)
+    
+    # # Hyper-parameter Tunning
+    # best_params = hyper_parameter_tunning(X_train, X_val, y_train, y_val, dv)
+    
+    # # Train
+    # train_best_model(X_train, X_val, y_train, y_val, dv, best_params)
