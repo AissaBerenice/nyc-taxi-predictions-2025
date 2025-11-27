@@ -11,7 +11,7 @@ load_dotenv(override=True)  # Carga las variables del archivo .env
 mlflow.set_tracking_uri("databricks")
 client = MlflowClient()
 
-EXPERIMENT_NAME = "/Users/aclarapao@gmail.com/nyc-taxi-experiment-prefect"
+EXPERIMENT_NAME = "/Users/aissafosado@gmail.com/nyc-taxi-experiment-prefect"
 
 run_ = mlflow.search_runs(order_by=['metrics.rmse ASC'],
                           output_format="list",
